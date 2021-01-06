@@ -42,7 +42,6 @@ export default function Home() {
 
   // useEffect(() => {
   //   if (randomWords && randomWords[curWordIndex]) {
-  //     console.log(randomWords)
   //     const wordArr = randomWords[curWordIndex].split("")
   //     setCurrentWordArr(wordArr)
   //   }
@@ -54,7 +53,7 @@ export default function Home() {
 
   //   function listenKeys(e) {
   //     if (e.key === currentWordArr[curLetterIndex]) {
-  //       curLetterIndex = curLetterIndex + 1
+  //       curLetterIndex = curLetterIndex + 1f
   //     } else {
   //       curLetterIndex = 0
   //       console.log(currentWordArr)
