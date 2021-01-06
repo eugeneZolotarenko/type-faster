@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 import MainContainer from "../styles/MainContainer"
 import { Box, Card, Flex } from "rebass"
@@ -11,6 +11,11 @@ export default function Home() {
 
   const [curWordBgColor, setCurWordBgColor] = useState("#88ff88")
   const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState([])
+
+  const [topPositionOfWords, setTopPositionOfWords] = useState(0)
+  const [heightOfWordsWrapper] = useState(100)
+
+  const wrapperOfWordsEl = useRef(null);
   // const [currentWordArr, setCurrentWordArr] = useState([])
 
   useEffect(() => {
@@ -68,24 +73,36 @@ export default function Home() {
   //   document.addEventListener("keydown", listenKeys)
   // }, [currentWordArr])
 
+  const getPositionOfNextWordEl = () => {
+    const allWordsEls = wrapperOfWordsEl.current.querySelectorAll('.word')
+    const nextWordEl = allWordsEls[curWordIndex + 1]
+    const posOfNextWordEl = nextWordEl.offsetLeft
+    return posOfNextWordEl
+  }
+
+  const isCurWordIsLastInRow = () => getPositionOfNextWordEl() <= 10
+
   function listenWords(e) {
     const typedTextArr = e.target.value.split("")
     const currentWordArr = randomWords[curWordIndex].split("")
 
-    const isTypedTextCorrect = (typedText) =>
-      typedText.every((value, index) => {
-        return value === currentWordArr[index]
-      })
     const lastTypedCharIsSpace = () => typedTextArr[typedTextArr.length - 1] === " "
     const isTypedTextCorrectWithSpace = () => isTypedTextCorrect([...typedTextArr].slice(0, -1))
     const isCorrectAmountOfChars = () => typedTextArr.length === currentWordArr.length + 1
     const isArrLengthGreaterThan1 = () => typedTextArr.length > 1
 
+    const isTypedTextCorrect = (typedText) =>
+    typedText.every((value, index) => value === currentWordArr[index])
+
     if (isTypedTextCorrect(typedTextArr)) {
       setCurWordBgColor("#88ff88") // green
+      console.log(isCurWordIsLastInRow())
     } else if (isCorrectAmountOfChars() && isTypedTextCorrectWithSpace() && lastTypedCharIsSpace()) {
       setCurWordIndex(curWordIndex + 1)
       e.target.value = ""
+      if (isCurWordIsLastInRow()) {
+        setTopPositionOfWords(topPositionOfWords + (heightOfWordsWrapper / 2))
+      }
       setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
     } else if (lastTypedCharIsSpace() && isArrLengthGreaterThan1()) {
       setCurWordIndex(curWordIndex + 1)
@@ -107,7 +124,6 @@ export default function Home() {
 
       <MainContainer>
         <Box width={"80%"} maxWidth='900px'>
-          {/* {currentWordArr} */}
           <Input onChange={listenWords} id='comment' name='comment' type='text' />
           <Card
             sx={{
@@ -116,10 +132,7 @@ export default function Home() {
               boxShadow: "0 0 16px rgba(0, 0, 0, .25)",
               backgroundColor: "#f3f5f7",
             }}>
-            <Flex flexWrap='wrap' space={5} css={{ height: "100px", overflow: "hidden" }}>
-              {/* <Box ml={1} my={1} px={2} width={"fit-content"} fontSize='18px' css={{ borderRadius: "5px" }} color='white' bg='#444'>
-                {currentWordArr}
-              </Box> */}
+            <Flex ref={wrapperOfWordsEl} flexWrap='wrap' space={5} css={{ height: `${heightOfWordsWrapper}px`, overflow: "hidden", position: "relative" }}>
               {randomWords.map((word, i) => {
                 return (
                   <Box
@@ -130,7 +143,8 @@ export default function Home() {
                     width={"fit-content"}
                     fontSize='22px'
                     fontWeight={i === curWordIndex ? 700 : 400}
-                    css={{ borderRadius: "5px", position: "relative", top: "0px" }}
+                    css={{ borderRadius: "5px", position: "relative", top: `-${topPositionOfWords}px` }}
+                    className="word"
                     color={i === curWordIndex ? "black" : colorsOfPrevWordsArr.length && colorsOfPrevWordsArr[i] ? colorsOfPrevWordsArr[i] : "black"}
                     bg={i === curWordIndex ? curWordBgColor : "transparent"}>
                     {word}
