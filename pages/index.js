@@ -16,7 +16,7 @@ export default function Home() {
   const [heightOfVisibleWordsContainer] = useState(100)
 
   const wrapperOfWordsEl = useRef(null);
-  // const [currentWordArr, setCurrentWordArr] = useState([])
+  const inputForWordsEl = useRef(null);
 
   useEffect(() => {
     async function fetchTextFile() {
@@ -43,6 +43,15 @@ export default function Home() {
     }
 
     getRandomWordsArray(400)
+  }, [])
+
+  useEffect(() => {
+    function activateInput() {
+      // inputForWordsEl.current.readOnly = false;
+      inputForWordsEl.current.focus()
+      console.log(inputForWordsEl)
+    }
+    activateInput()
   }, [])
 
   // useEffect(() => {
@@ -124,7 +133,10 @@ export default function Home() {
 
       <MainContainer>
         <Box width={"80%"} maxWidth='900px'>
-          <Input onChange={listenWords} id='comment' name='comment' type='text' />
+          <Flex>
+            <Input ref={inputForWordsEl} onChange={listenWords} id='comment' name='comment' type='text' />
+            <Flex alignItems="center" justifyContent="center" class="count-down-timer">1:00</Flex>
+          </Flex>
           <Card
             sx={{
               p: 1,
@@ -144,8 +156,8 @@ export default function Home() {
                     px={1}
                     width={"fit-content"}
                     fontSize='22px'
-                    fontWeight={i === curWordIndex ? 700 : 400}
-                    css={{ borderRadius: "5px", position: "relative" }}
+                    fontWeight='500'
+                    css={{ borderRadius: "5px" }}
                     className="word"
                     color={i === curWordIndex ? "black" : colorsOfPrevWordsArr.length && colorsOfPrevWordsArr[i] ? colorsOfPrevWordsArr[i] : "black"}
                     bg={i === curWordIndex ? curWordBgColor : "transparent"}>
