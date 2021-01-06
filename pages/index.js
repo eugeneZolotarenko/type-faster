@@ -12,8 +12,8 @@ export default function Home() {
   const [curWordBgColor, setCurWordBgColor] = useState("#88ff88")
   const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState([])
 
-  const [topPositionOfWords, setTopPositionOfWords] = useState(0)
-  const [heightOfWordsWrapper] = useState(100)
+  const [topPositionOfWordsWrapper, settopPositionOfWordsWrapper] = useState(0)
+  const [heightOfVisibleWordsContainer] = useState(100)
 
   const wrapperOfWordsEl = useRef(null);
   // const [currentWordArr, setCurrentWordArr] = useState([])
@@ -27,8 +27,8 @@ export default function Home() {
 
     async function textFileToArray() {
       const text = await fetchTextFile()
-      const array = text.split(/\n|\r/g)
-      return array
+      const arrayOfWordsFromText = text.split(/\n|\r/g)
+      return arrayOfWordsFromText
     }
 
     async function getRandomWordsArray(length) {
@@ -101,7 +101,7 @@ export default function Home() {
       setCurWordIndex(curWordIndex + 1)
       e.target.value = ""
       if (isCurWordIsLastInRow()) {
-        setTopPositionOfWords(topPositionOfWords + (heightOfWordsWrapper / 2))
+        settopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
       }
       setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
     } else if (lastTypedCharIsSpace() && isArrLengthGreaterThan1()) {
@@ -131,8 +131,10 @@ export default function Home() {
               borderRadius: 2,
               boxShadow: "0 0 16px rgba(0, 0, 0, .25)",
               backgroundColor: "#f3f5f7",
-            }}>
-            <Flex ref={wrapperOfWordsEl} flexWrap='wrap' space={5} css={{ height: `${heightOfWordsWrapper}px`, overflow: "hidden", position: "relative" }}>
+            }}
+            css={{ height: `${heightOfVisibleWordsContainer}px`, overflow: "hidden", position: "relative" }}
+            >
+            <Flex ref={wrapperOfWordsEl} flexWrap='wrap' space={5} css={{ position: "relative", top: `-${topPositionOfWordsWrapper}px` }}>
               {randomWords.map((word, i) => {
                 return (
                   <Box
@@ -143,7 +145,7 @@ export default function Home() {
                     width={"fit-content"}
                     fontSize='22px'
                     fontWeight={i === curWordIndex ? 700 : 400}
-                    css={{ borderRadius: "5px", position: "relative", top: `-${topPositionOfWords}px` }}
+                    css={{ borderRadius: "5px", position: "relative" }}
                     className="word"
                     color={i === curWordIndex ? "black" : colorsOfPrevWordsArr.length && colorsOfPrevWordsArr[i] ? colorsOfPrevWordsArr[i] : "black"}
                     bg={i === curWordIndex ? curWordBgColor : "transparent"}>
