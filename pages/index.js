@@ -12,47 +12,76 @@ export default function Home() {
   const [curWordBgColor, setCurWordBgColor] = useState("#88ff88")
   const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState([])
 
-  const [topPositionOfWordsWrapper, settopPositionOfWordsWrapper] = useState(0)
+  const [topPositionOfWordsWrapper, setTopPositionOfWordsWrapper] = useState(0)
   const [heightOfVisibleWordsContainer] = useState(100)
+
+  const [typeTestTime] = useState(60)
+  const [timeLeft, setTimeLeft] = useState(typeTestTime);
 
   const wrapperOfWordsEl = useRef(null);
   const inputForWordsEl = useRef(null);
 
-  useEffect(() => {
-    async function fetchTextFile() {
-      const resp = await fetch("https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-usa-no-swears-medium.txt")
-      const data = await resp.text()
-      return data
-    }
+  function runTimer() {
+    let time = timeLeft
 
-    async function textFileToArray() {
-      const text = await fetchTextFile()
-      const arrayOfWordsFromText = text.split(/\n|\r/g)
-      return arrayOfWordsFromText
-    }
+    const timer = setInterval(() => {
+      time = time - 1
+      setTimeLeft(time);
+    }, 1000);
 
-    async function getRandomWordsArray(length) {
-      const fullArray = await textFileToArray()
-      const randomWordsArray = []
+    const timeWithoutOneSecond = (typeTestTime * 1000) - 60
 
-      for (let i = 0; i < length; i++) {
-        randomWordsArray.push(fullArray[Math.floor(Math.random() * fullArray.length)])
-      }
+    setTimeout(() => {
+      clearInterval(timer)
+      resetApp()
+    }, timeWithoutOneSecond);
+  }
 
-      setRandomWords(randomWordsArray)
-    }
-
+  function resetApp() {
     getRandomWordsArray(400)
-  }, [])
+    setTimeLeft(60)
+    setCurWordIndex(0)
+    setColorsOfPrevWordsArr([])
+    setCurWordBgColor("#88ff88")
+    setTopPositionOfWordsWrapper(0)
+    emptyInput()
+  }
+
+  async function fetchTextFile() {
+    const resp = await fetch("https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-usa-no-swears-medium.txt")
+    const data = await resp.text()
+    return data
+  }
+
+  async function textFileToArray() {
+    const text = await fetchTextFile()
+    const arrayOfWordsFromText = text.split(/\n|\r/g)
+    return arrayOfWordsFromText
+  }
+
+  async function getRandomWordsArray(length) {
+    const fullArray = await textFileToArray()
+    const randomWordsArray = []
+
+    for (let i = 0; i < length; i++) {
+      randomWordsArray.push(fullArray[Math.floor(Math.random() * fullArray.length)])
+    }
+    console.log(randomWordsArray)
+    setRandomWords(randomWordsArray)
+  }
 
   useEffect(() => {
-    function activateInput() {
-      // inputForWordsEl.current.readOnly = false;
-      inputForWordsEl.current.focus()
-      console.log(inputForWordsEl)
-    }
+    getRandomWordsArray(400)
     activateInput()
   }, [])
+
+  function activateInput() {
+    inputForWordsEl.current.focus()
+  }
+
+  function emptyInput() {
+    inputForWordsEl.current.value = ""
+  }
 
   // useEffect(() => {
   //   if (randomWords && randomWords[curWordIndex]) {
@@ -91,7 +120,7 @@ export default function Home() {
 
   const isCurWordIsLastInRow = () => getPositionOfNextWordEl() <= 10
 
-  function listenWords(e) {
+  function listenTypingTest(e) {
     const typedTextArr = e.target.value.split("")
     const currentWordArr = randomWords[curWordIndex].split("")
 
@@ -105,12 +134,15 @@ export default function Home() {
 
     if (isTypedTextCorrect(typedTextArr)) {
       setCurWordBgColor("#88ff88") // green
-      console.log(isCurWordIsLastInRow())
+      console.log('thats run')
+      if (curWordIndex === 0 && typedTextArr.length === 1) {
+        runTimer()
+      }
     } else if (isCorrectAmountOfChars() && isTypedTextCorrectWithSpace() && lastTypedCharIsSpace()) {
       setCurWordIndex(curWordIndex + 1)
       e.target.value = ""
       if (isCurWordIsLastInRow()) {
-        settopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
+        setTopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
       }
       setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
     } else if (lastTypedCharIsSpace() && isArrLengthGreaterThan1()) {
@@ -134,8 +166,8 @@ export default function Home() {
       <MainContainer>
         <Box width={"80%"} maxWidth='900px'>
           <Flex>
-            <Input ref={inputForWordsEl} onChange={listenWords} id='comment' name='comment' type='text' />
-            <Flex alignItems="center" justifyContent="center" class="count-down-timer">1:00</Flex>
+            <Input ref={inputForWordsEl} autocomplete="off" onChange={listenTypingTest} type='text' />
+            <Flex alignItems="center" justifyContent="center" className="count-down-timer" px={2} ml={2} fontSize='22px'>{timeLeft === 60 ? '1:00' : `0:${timeLeft}`}</Flex>
           </Flex>
           <Card
             sx={{
