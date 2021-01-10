@@ -15,37 +15,54 @@ export default function Home() {
   const [topPositionOfWordsWrapper, setTopPositionOfWordsWrapper] = useState(0)
   const [heightOfVisibleWordsContainer] = useState(100)
 
-  const [typeTestTime] = useState(60)
-  const [timeLeft, setTimeLeft] = useState(typeTestTime);
+  const [typingTestTime] = useState(60)
+  const [typingTestTimeLeft, setTypingTestTimeLeft] = useState(typingTestTime)
 
-  const wrapperOfWordsEl = useRef(null);
-  const inputForWordsEl = useRef(null);
+  const [lastTypingTestResults, setLastTypingTestResults] = useState({
+    isLastTestExist: false,
+    wordsPerMinute: 0,
+    accuracy: 0,
+    correctWords: 0,
+    wrongWords: 0,
+  })
+
+  const [curTypingTestResults, setCurTypingTestResults] = useState({
+    isLastTestExist: true,
+    wordsPerMinute: 0,
+    accuracy: 0,
+    correctWords: 0,
+    wrongWords: 0,
+  })
+
+  const wrapperOfWordsEl = useRef(null)
+  const inputForWordsEl = useRef(null)
 
   function runTimer() {
-    let time = timeLeft
+    let time = typingTestTimeLeft
 
     const timer = setInterval(() => {
       time = time - 1
-      setTimeLeft(time);
+      setTypingTestTimeLeft(time)
     }, 1000);
 
-    const timeWithoutOneSecond = (typeTestTime * 1000) - 60
+    const timeWithoutOneSecond = (typingTestTime * 1000) - 60
 
     setTimeout(() => {
       clearInterval(timer)
       resetApp()
-    }, timeWithoutOneSecond);
+    }, timeWithoutOneSecond)
   }
 
   function resetApp() {
-    getRandomWordsArray(400)
-    setTimeLeft(60)
-    setCurWordIndex(0)
-    setColorsOfPrevWordsArr([])
-    setCurWordBgColor("#88ff88")
-    setTopPositionOfWordsWrapper(0)
-    emptyInput()
-    deactivateTypingTestInput()
+    getRandomWordsArray(400).then(() => {
+      setTypingTestTimeLeft(60)
+      setCurWordIndex(0)
+      setColorsOfPrevWordsArr([])
+      setCurWordBgColor("#88ff88")
+      setTopPositionOfWordsWrapper(0)
+      emptyInput()
+      deactivateTypingTestInput()
+    })
   }
 
   async function fetchTextFile() {
@@ -67,8 +84,12 @@ export default function Home() {
     for (let i = 0; i < length; i++) {
       randomWordsArray.push(fullArray[Math.floor(Math.random() * fullArray.length)])
     }
-    console.log(randomWordsArray)
-    setRandomWords(randomWordsArray)
+
+    setRandomWords(filterArrayFromEmptyStrings(randomWordsArray))
+  }
+
+  function filterArrayFromEmptyStrings(arr) {
+    return arr.filter(item => item !== " ")
   }
 
   useEffect(() => {
@@ -95,44 +116,50 @@ export default function Home() {
     return posOfNextWordEl
   }
 
-  const curWordIsLastInTheRow = () => getPositionOfNextWordEl() <= 30
-
   function listenTypingTest(e) {
     const typedTextArr = e.target.value.split("")
     const currentWordArr = randomWords[curWordIndex].split("")
 
+    const isCurWordLastInTheRow = () => getPositionOfNextWordEl() <= 30
     const isItStartOfTypingTest = () => curWordIndex === 0 && typedTextArr.length === 1
-
     const lastTypedCharIsSpace = () => typedTextArr[typedTextArr.length - 1] === " "
-    const isTypedTextCorrectWithSpace = () => isTypedTextCorrect([...typedTextArr].slice(0, -1))
-    const isCorrectAmountOfChars = () => typedTextArr.length === currentWordArr.length + 1
-    const isTypedLettersGreaterThan1 = () => typedTextArr.length > 1
-
     const isTypedTextCorrect = (typedText) =>
-    typedText.every((value, index) => value === currentWordArr[index])
+      typedText.every((value, index) => value === currentWordArr[index])
+    const isTypedTextCorrectWithSpace = () => isTypedTextCorrect([...typedTextArr].slice(0, -1))
+    const isCorrectAmountOfCharsWithSpace = () => typedTextArr.length === currentWordArr.length + 1
+    const isTypedLettersGreaterThan1 = () => typedTextArr.length > 1
+    const isTypedTextArrEmpty = (typedText) => typedText.length === 0
 
-    if (isTypedTextCorrect(typedTextArr)) {
-      setCurWordBgColor("#88ff88") // green
-      console.log('thats run')
-      if (isItStartOfTypingTest()) {
-        runTimer()
-      }
-    } else if (isCorrectAmountOfChars() && isTypedTextCorrectWithSpace() && lastTypedCharIsSpace()) {
+    const recountTopPositionOfWordsWrapper = () => topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2)
+    const emtyTypedTextArr = () => typedTextArr.length = 0
+
+    if (isItStartOfTypingTest()) {
+      runTimer()
+    }
+
+    if (lastTypedCharIsSpace() && isTypedLettersGreaterThan1()) {
       setCurWordIndex(curWordIndex + 1)
       e.target.value = ""
-      if (curWordIsLastInTheRow()) {
-        setTopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
+      if (isCurWordLastInTheRow()) {
+        setTopPositionOfWordsWrapper(recountTopPositionOfWordsWrapper())
       }
-      setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
-    } else if (lastTypedCharIsSpace() && isTypedLettersGreaterThan1()) {
-      setCurWordIndex(curWordIndex + 1)
-      e.target.value = ""
-      setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "red"])
-      if (curWordIsLastInTheRow()) {
-        setTopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
+
+      if (isCorrectAmountOfCharsWithSpace() && isTypedTextCorrectWithSpace()) {
+        setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
+        setCurTypingTestResults({...curTypingTestResults, correctWords: curTypingTestResults.correctWords + 1})
+      } else {
+        setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "red"])
+        setCurTypingTestResults({...curTypingTestResults, wrongWords: curTypingTestResults.wrongWords + 1})
       }
+
+      emtyTypedTextArr()
+      
     } else if (lastTypedCharIsSpace() && !isTypedLettersGreaterThan1()) {
       e.target.value = ""
+    }
+
+    if (isTypedTextCorrect(typedTextArr) || isTypedTextArrEmpty(typedTextArr)) {
+      setCurWordBgColor("#88ff88") // green
     } else {
       setCurWordBgColor("#f58989") // red
     }
@@ -149,15 +176,16 @@ export default function Home() {
         <Box width={"80%"} maxWidth='900px'>
           <Flex>
             <Input ref={inputForWordsEl} autocomplete="off" onChange={listenTypingTest} type='text' />
-            <Flex alignItems="center" justifyContent="center" className="count-down-timer" px={2} ml={2} fontSize='22px'>{timeLeft === 60 ? '1:00' : `0:${timeLeft}`}</Flex>
+            <Flex alignItems="center" justifyContent="center" className="count-down-timer" px={2} ml={2} fontSize='22px'>{typingTestTimeLeft === 60 ? '1:00' : `0:${typingTestTimeLeft}`}</Flex>
           </Flex>
           <Card
             sx={{
               p: 1,
               borderRadius: 2,
-              boxShadow: "0 0 16px rgba(0, 0, 0, .25)",
+              boxShadow: "0 0 16px rgba(0, 0, 0, .2)",
               backgroundColor: "#f3f5f7",
             }}
+            my={3}
             css={{ height: `${heightOfVisibleWordsContainer}px`, overflow: "hidden", position: "relative" }}
             >
             <Flex ref={wrapperOfWordsEl} flexWrap='wrap' space={5} css={{ position: "relative", top: `-${topPositionOfWordsWrapper}px` }}>
