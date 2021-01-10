@@ -45,6 +45,7 @@ export default function Home() {
     setCurWordBgColor("#88ff88")
     setTopPositionOfWordsWrapper(0)
     emptyInput()
+    deactivateTypingTestInput()
   }
 
   async function fetchTextFile() {
@@ -72,44 +73,20 @@ export default function Home() {
 
   useEffect(() => {
     getRandomWordsArray(400)
-    activateInput()
+    activateTypingTestInput()
   }, [])
 
-  function activateInput() {
+  function activateTypingTestInput() {
     inputForWordsEl.current.focus()
+  }
+
+  function deactivateTypingTestInput() {
+    inputForWordsEl.current.blur()
   }
 
   function emptyInput() {
     inputForWordsEl.current.value = ""
   }
-
-  // useEffect(() => {
-  //   if (randomWords && randomWords[curWordIndex]) {
-  //     const wordArr = randomWords[curWordIndex].split("")
-  //     setCurrentWordArr(wordArr)
-  //   }
-  //   console.log("object")
-  // }, [randomWords, curWordIndex])
-
-  // useEffect(() => {
-  //   let curLetterIndex = 0
-
-  //   function listenKeys(e) {
-  //     if (e.key === currentWordArr[curLetterIndex]) {
-  //       curLetterIndex = curLetterIndex + 1f
-  //     } else {
-  //       curLetterIndex = 0
-  //       console.log(currentWordArr)
-  //       console.log(curLetterIndex)
-  //     }
-  //     console.log(`${currentWordArr.length} ${curLetterIndex}`)
-  //     if (currentWordArr.length === curLetterIndex) {
-  //       setCurWordIndex(curWordIndex + 1)
-  //     }
-  //   }
-
-  //   document.addEventListener("keydown", listenKeys)
-  // }, [currentWordArr])
 
   const getPositionOfNextWordEl = () => {
     const allWordsEls = wrapperOfWordsEl.current.querySelectorAll('.word')
@@ -118,16 +95,18 @@ export default function Home() {
     return posOfNextWordEl
   }
 
-  const isCurWordIsLastInRow = () => getPositionOfNextWordEl() <= 10
+  const curWordIsLastInTheRow = () => getPositionOfNextWordEl() <= 30
 
   function listenTypingTest(e) {
     const typedTextArr = e.target.value.split("")
     const currentWordArr = randomWords[curWordIndex].split("")
 
+    const isItStartOfTypingTest = () => curWordIndex === 0 && typedTextArr.length === 1
+
     const lastTypedCharIsSpace = () => typedTextArr[typedTextArr.length - 1] === " "
     const isTypedTextCorrectWithSpace = () => isTypedTextCorrect([...typedTextArr].slice(0, -1))
     const isCorrectAmountOfChars = () => typedTextArr.length === currentWordArr.length + 1
-    const isArrLengthGreaterThan1 = () => typedTextArr.length > 1
+    const isTypedLettersGreaterThan1 = () => typedTextArr.length > 1
 
     const isTypedTextCorrect = (typedText) =>
     typedText.every((value, index) => value === currentWordArr[index])
@@ -135,21 +114,24 @@ export default function Home() {
     if (isTypedTextCorrect(typedTextArr)) {
       setCurWordBgColor("#88ff88") // green
       console.log('thats run')
-      if (curWordIndex === 0 && typedTextArr.length === 1) {
+      if (isItStartOfTypingTest()) {
         runTimer()
       }
     } else if (isCorrectAmountOfChars() && isTypedTextCorrectWithSpace() && lastTypedCharIsSpace()) {
       setCurWordIndex(curWordIndex + 1)
       e.target.value = ""
-      if (isCurWordIsLastInRow()) {
+      if (curWordIsLastInTheRow()) {
         setTopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
       }
       setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
-    } else if (lastTypedCharIsSpace() && isArrLengthGreaterThan1()) {
+    } else if (lastTypedCharIsSpace() && isTypedLettersGreaterThan1()) {
       setCurWordIndex(curWordIndex + 1)
       e.target.value = ""
       setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "red"])
-    } else if (lastTypedCharIsSpace() && !isArrLengthGreaterThan1()) {
+      if (curWordIsLastInTheRow()) {
+        setTopPositionOfWordsWrapper(topPositionOfWordsWrapper + (heightOfVisibleWordsContainer / 2))
+      }
+    } else if (lastTypedCharIsSpace() && !isTypedLettersGreaterThan1()) {
       e.target.value = ""
     } else {
       setCurWordBgColor("#f58989") // red
