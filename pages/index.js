@@ -1,8 +1,9 @@
 import Head from "next/head"
 import { useState, useEffect, useRef } from "react"
 
-import MainContainer from "../styles/MainContainer"
-import { Box, Card, Flex } from "rebass"
+import MainContainer from "../styles/MainContainerStyles"
+import TypingResults from "../styles/components/TypingResultsStyles"
+import { Box, Card, Flex, Heading } from "rebass"
 import { Input } from "@rebass/forms"
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
 
   const [lastTypingTestResults, setLastTypingTestResults] = useState({
     isLastTestExist: false,
+    charTyped: 0,
     wordsPerMinute: 0,
     accuracy: 0,
     correctWords: 0,
@@ -28,6 +30,7 @@ export default function Home() {
 
   const [curTypingTestResults, setCurTypingTestResults] = useState({
     isLastTestExist: true,
+    charTyped: 0,
     wordsPerMinute: 0,
     accuracy: 0,
     correctWords: 0,
@@ -145,11 +148,11 @@ export default function Home() {
       }
 
       if (isCorrectAmountOfCharsWithSpace() && isTypedTextCorrectWithSpace()) {
-        setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "green"])
-        setCurTypingTestResults({...curTypingTestResults, correctWords: curTypingTestResults.correctWords + 1})
+        setColorsOfPrevWordsArr([ ...colorsOfPrevWordsArr, "green" ])
+        setCurTypingTestResults({ ...curTypingTestResults, correctWords: curTypingTestResults.correctWords + 1, charTyped: curTypingTestResults.charTyped + typedTextArr.length })
       } else {
-        setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, "red"])
-        setCurTypingTestResults({...curTypingTestResults, wrongWords: curTypingTestResults.wrongWords + 1})
+        setColorsOfPrevWordsArr([ ...colorsOfPrevWordsArr, "red" ])
+        setCurTypingTestResults({ ...curTypingTestResults, wrongWords: curTypingTestResults.wrongWords + 1 })
       }
 
       emtyTypedTextArr()
@@ -209,6 +212,15 @@ export default function Home() {
               })}
             </Flex>
           </Card>
+              <TypingResults>
+                <h3>Your last results are:</h3>
+                <ul>
+                  <li>38 WPM</li>
+                  <li>Accuracy: 96%</li>
+                  <li>Correct words: 100</li>
+                  <li>Wrong words: 3</li>
+                </ul>
+              </TypingResults>
         </Box>
       </MainContainer>
     </>
