@@ -1,7 +1,6 @@
-import { createGlobalStyle } from "styled-components"
+import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
-
     *,
     *::before,
     *::after {
@@ -81,6 +80,6 @@ const GlobalStyle = createGlobalStyle`
   *, *::before, *::after {
     font-family: 'Montserrat', sans-serif;
   } 
-`
+`;
 
-export default GlobalStyle
+export default GlobalStyle;
