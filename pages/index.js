@@ -9,10 +9,21 @@ import { Input } from '@rebass/forms';
 import { transformTimeToReadable } from 'utils/transformTimeToReadoble';
 
 export default function Home() {
+  const greenColor = '#88ff88';
+  const redColor = '#f58989';
+
+  const initialTypingTestResult = {
+    isLastTestExist: false,
+    charTyped: 0,
+    wordsPerMinute: 0,
+    accuracy: 0,
+    correctWords: 0,
+    wrongWords: 0,
+  };
   const [randomWords, setRandomWords] = useState([]);
   const [curWordIndex, setCurWordIndex] = useState(0);
 
-  const [curWordBgColor, setCurWordBgColor] = useState('#88ff88');
+  const [curWordBgColor, setCurWordBgColor] = useState(greenColor);
   const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState([]);
 
   const [topPositionOfWordsWrapper, setTopPositionOfWordsWrapper] = useState(0);
@@ -21,23 +32,13 @@ export default function Home() {
   const [typingTestTime] = useState(60);
   const [typingTestTimeLeft, setTypingTestTimeLeft] = useState(typingTestTime);
 
-  const [lastTypingTestResults, setLastTypingTestResults] = useState({
-    isLastTestExist: false,
-    charTyped: 0,
-    wordsPerMinute: 0,
-    accuracy: 0,
-    correctWords: 0,
-    wrongWords: 0,
-  });
+  const [lastTypingTestResults, setLastTypingTestResults] = useState(
+    initialTypingTestResult
+  );
 
-  const [curTypingTestResults, setCurTypingTestResults] = useState({
-    isLastTestExist: true,
-    charTyped: 0,
-    wordsPerMinute: 0,
-    accuracy: 0,
-    correctWords: 0,
-    wrongWords: 0,
-  });
+  const [curTypingTestResults, setCurTypingTestResults] = useState(
+    initialTypingTestResult
+  );
 
   const wrapperOfWordsEl = useRef(null);
   const inputForWordsEl = useRef(null);
@@ -52,10 +53,12 @@ export default function Home() {
 
     const timeWithoutOneSecond = typingTestTime * 1000 - 60;
 
-    setTimeout(() => {
+    const debouncer = setTimeout(() => {
       clearInterval(timer);
       resetApp();
     }, timeWithoutOneSecond);
+
+    return () => clearTimeout(debouncer);
   }
 
   function resetApp() {
@@ -63,21 +66,21 @@ export default function Home() {
       setTypingTestTimeLeft(60);
       setCurWordIndex(0);
       setColorsOfPrevWordsArr([]);
-      setCurWordBgColor('#88ff88');
+      setCurWordBgColor(greenColor);
       setTopPositionOfWordsWrapper(0);
       emptyInput();
       deactivateTypingTestInput();
     });
   }
 
-  function countResults() {
-    const wordsPerMinute = curTypingTestResults / 5 / 1;
+  // function countResults() {
+  //   const wordsPerMinute = curTypingTestResults.charTyped / 5 / 1;
 
-    setCurTypingTestResults({
-      ...curTypingTestResults,
-      wordsPerMinute,
-    });
-  }
+  //   setCurTypingTestResults({
+  //     ...curTypingTestResults,
+  //     wordsPerMinute,
+  //   });
+  // }
 
   async function fetchTextFile() {
     const resp = await fetch(
@@ -109,11 +112,6 @@ export default function Home() {
   function filterArrayFromEmptyStrings(arr) {
     return arr.filter((item) => item !== ' ');
   }
-
-  useEffect(() => {
-    getRandomWordsArray(400);
-    activateTypingTestInput();
-  }, []);
 
   function activateTypingTestInput() {
     inputForWordsEl.current.focus();
@@ -168,12 +166,19 @@ export default function Home() {
       }
 
       if (isCorrectAmountOfCharsWithSpace() && isTypedTextCorrectWithSpace()) {
+        const correctWords = curTypingTestResults.correctWords + 1;
+        const charTyped = curTypingTestResults.charTyped + typedTextArr.length;
+        const wordsPerMinute = charTyped / 5 / (typingTestTime / 60);
+
         setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, 'green']);
         setCurTypingTestResults({
           ...curTypingTestResults,
-          correctWords: curTypingTestResults.correctWords + 1,
-          charTyped: curTypingTestResults.charTyped + typedTextArr.length,
+          correctWords,
+          charTyped,
+          wordsPerMinute,
         });
+
+        // countResults();
       } else {
         setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, 'red']);
         setCurTypingTestResults({
@@ -188,15 +193,27 @@ export default function Home() {
     }
 
     if (isTypedTextCorrect(typedTextArr) || isTypedTextArrEmpty(typedTextArr)) {
-      setCurWordBgColor('#88ff88'); // green
+      setCurWordBgColor(greenColor);
     } else {
-      setCurWordBgColor('#f58989'); // red
+      setCurWordBgColor(redColor);
     }
   }
 
   useEffect(() => {
+    if (curWordIndex === 0) {
+      setLastTypingTestResults(curTypingTestResults);
+      setCurTypingTestResults(initialTypingTestResult);
+    }
+  }, [curWordIndex]);
+
+  useEffect(() => {
     console.log(curTypingTestResults);
   }, [curTypingTestResults]);
+
+  useEffect(() => {
+    getRandomWordsArray(400);
+    activateTypingTestInput();
+  }, []);
 
   return (
     <>
@@ -278,10 +295,10 @@ export default function Home() {
           <TypingResults>
             <h3>Your last results are:</h3>
             <ul>
-              <li>38 WPM</li>
-              <li>Accuracy: 96%</li>
-              <li>Correct words: 100</li>
-              <li>Wrong words: 3</li>
+              <li>{lastTypingTestResults.wordsPerMinute} WPM</li>
+              {/* <li>Accuracy: 96%</li> */}
+              <li>Correct words: {lastTypingTestResults.correctWords}</li>
+              <li>Wrong words: {lastTypingTestResults.wrongWords}</li>
             </ul>
           </TypingResults>
         </Box>
