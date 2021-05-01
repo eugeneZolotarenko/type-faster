@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 
 import MainContainer from 'styles/components/MainContainerStyles';
 import TypingResults from 'styles/components/TypingResultsStyles';
-import { Box, Card, Flex } from 'rebass';
+import { Box, Card, Flex, Text } from 'rebass';
 import { Input } from '@rebass/forms';
 
 import { transformTimeToReadable } from 'utils/transformTimeToReadoble';
@@ -72,15 +72,6 @@ export default function Home() {
       deactivateTypingTestInput();
     });
   }
-
-  // function countResults() {
-  //   const wordsPerMinute = curTypingTestResults.charTyped / 5 / 1;
-
-  //   setCurTypingTestResults({
-  //     ...curTypingTestResults,
-  //     wordsPerMinute,
-  //   });
-  // }
 
   async function fetchTextFile() {
     const resp = await fetch(
@@ -177,8 +168,6 @@ export default function Home() {
           charTyped,
           wordsPerMinute,
         });
-
-        // countResults();
       } else {
         setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, 'red']);
         setCurTypingTestResults({
@@ -294,12 +283,23 @@ export default function Home() {
           </Card>
           <TypingResults>
             <h3>Your last results are:</h3>
-            <ul>
-              <li>{lastTypingTestResults.wordsPerMinute} WPM</li>
-              {/* <li>Accuracy: 96%</li> */}
-              <li>Correct words: {lastTypingTestResults.correctWords}</li>
-              <li>Wrong words: {lastTypingTestResults.wrongWords}</li>
-            </ul>
+            <Flex
+              fontSize="20px"
+              flexDirection="column"
+              alignItems="center"
+              gap="10px"
+            >
+              <Text fontSize="30px">
+                {lastTypingTestResults.wordsPerMinute} WPM
+              </Text>
+              <Text>
+                Keystrokes: <span>correct: 192</span> | <span>wrong: 5</span> |{' '}
+                <span>summary: 197</span>
+              </Text>
+              <Text>Accuracy: 96%</Text>
+              <Text>Correct words: {lastTypingTestResults.correctWords}</Text>
+              <Text>Wrong words: {lastTypingTestResults.wrongWords}</Text>
+            </Flex>
           </TypingResults>
         </Box>
       </MainContainer>
