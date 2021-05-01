@@ -1,12 +1,12 @@
 import Head from 'next/head';
 import { useState, useEffect, useRef } from 'react';
 
-import MainContainer from 'styles/components/MainContainerStyles';
-import TypingResults from 'styles/components/TypingResultsStyles';
+import { transformTimeToReadable } from 'utils/transformTimeToReadoble';
+
+import MainContainer from 'style/components/MainContainerStyles';
+import TypingResults from 'style/components/TypingResultsStyles';
 import { Box, Card, Flex, Text } from 'rebass';
 import { Input } from '@rebass/forms';
-
-import { transformTimeToReadable } from 'utils/transformTimeToReadoble';
 
 export default function Home() {
   const greenColor = '#88ff88';
@@ -20,11 +20,13 @@ export default function Home() {
     correctWords: 0,
     wrongWords: 0,
   };
-  const [randomWords, setRandomWords] = useState([]);
+  const [randomWords, setRandomWords] = useState<string[]>([]);
   const [curWordIndex, setCurWordIndex] = useState(0);
 
   const [curWordBgColor, setCurWordBgColor] = useState(greenColor);
-  const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState([]);
+  const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState<string[]>(
+    []
+  );
 
   const [topPositionOfWordsWrapper, setTopPositionOfWordsWrapper] = useState(0);
   const [heightOfVisibleWordsContainer] = useState(100);
@@ -40,8 +42,8 @@ export default function Home() {
     initialTypingTestResult
   );
 
-  const wrapperOfWordsEl = useRef(null);
-  const inputForWordsEl = useRef(null);
+  const wrapperOfWordsEl = useRef<HTMLElement>(null);
+  const inputForWordsEl = useRef<HTMLInputElement>(null);
 
   function runTimer() {
     let time = typingTestTimeLeft;
@@ -87,7 +89,7 @@ export default function Home() {
     return arrayOfWordsFromText;
   }
 
-  async function getRandomWordsArray(length) {
+  async function getRandomWordsArray(length: number) {
     const fullArray = await textFileToArray();
     const randomWordsArray = [];
 
@@ -100,46 +102,52 @@ export default function Home() {
     setRandomWords(filterArrayFromEmptyStrings(randomWordsArray));
   }
 
-  function filterArrayFromEmptyStrings(arr) {
+  function filterArrayFromEmptyStrings(arr: string[]) {
     return arr.filter((item) => item !== ' ');
   }
 
   function activateTypingTestInput() {
-    inputForWordsEl.current.focus();
+    inputForWordsEl.current?.focus();
   }
 
   function deactivateTypingTestInput() {
-    inputForWordsEl.current.blur();
+    inputForWordsEl.current?.blur();
   }
 
   function emptyInput() {
-    inputForWordsEl.current.value = '';
+    inputForWordsEl.current!.value = '';
   }
 
   const getPositionOfNextWordEl = () => {
-    const allWordsEls = wrapperOfWordsEl.current.querySelectorAll('.word');
-    const nextWordEl = allWordsEls[curWordIndex + 1];
-    const posOfNextWordEl = nextWordEl.offsetLeft;
-    return posOfNextWordEl;
+    const allWordsEls:
+      | NodeListOf<HTMLElement>
+      | undefined = wrapperOfWordsEl.current?.querySelectorAll('.word');
+    if (allWordsEls) {
+      const nextWordEl = allWordsEls[curWordIndex + 1];
+      const posOfNextWordEl = nextWordEl.offsetLeft;
+      return posOfNextWordEl;
+    }
   };
 
-  function listenTypingTest(e) {
-    const typedTextArr = e.target.value.split('');
+  function listenTypingTest(e: React.FormEvent<HTMLInputElement>) {
+    const typedTextArr = e.currentTarget.value.split('');
     const currentWordArr = randomWords[curWordIndex].split('');
+    const positionOfNextWordEl = getPositionOfNextWordEl();
 
-    const isCurWordLastInTheRow = () => getPositionOfNextWordEl() <= 30;
+    const isCurWordLastInTheRow = () =>
+      positionOfNextWordEl && positionOfNextWordEl <= 30;
     const isItStartOfTypingTest = () =>
       curWordIndex === 0 && typedTextArr.length === 1;
     const lastTypedCharIsSpace = () =>
       typedTextArr[typedTextArr.length - 1] === ' ';
-    const isTypedTextCorrect = (typedText) =>
+    const isTypedTextCorrect = (typedText: string[]) =>
       typedText.every((value, index) => value === currentWordArr[index]);
     const isTypedTextCorrectWithSpace = () =>
       isTypedTextCorrect([...typedTextArr].slice(0, -1));
     const isCorrectAmountOfCharsWithSpace = () =>
       typedTextArr.length === currentWordArr.length + 1;
     const isTypedLettersGreaterThan1 = () => typedTextArr.length > 1;
-    const isTypedTextArrEmpty = (typedText) => typedText.length === 0;
+    const isTypedTextArrEmpty = (typedText: string[]) => typedText.length === 0;
 
     const recountTopPositionOfWordsWrapper = () =>
       topPositionOfWordsWrapper + heightOfVisibleWordsContainer / 2;
@@ -151,7 +159,7 @@ export default function Home() {
 
     if (lastTypedCharIsSpace() && isTypedLettersGreaterThan1()) {
       setCurWordIndex(curWordIndex + 1);
-      e.target.value = '';
+      e.currentTarget.value = '';
       if (isCurWordLastInTheRow()) {
         setTopPositionOfWordsWrapper(recountTopPositionOfWordsWrapper());
       }
@@ -178,7 +186,7 @@ export default function Home() {
 
       emtyTypedTextArr();
     } else if (lastTypedCharIsSpace() && !isTypedLettersGreaterThan1()) {
-      e.target.value = '';
+      e.currentTarget.value = '';
     }
 
     if (isTypedTextCorrect(typedTextArr) || isTypedTextArrEmpty(typedTextArr)) {
@@ -216,7 +224,6 @@ export default function Home() {
           <Flex>
             <Input
               ref={inputForWordsEl}
-              autocomplete="off"
               onChange={listenTypingTest}
               type="text"
             />
@@ -248,7 +255,6 @@ export default function Home() {
             <Flex
               ref={wrapperOfWordsEl}
               flexWrap="wrap"
-              space={5}
               css={{
                 position: 'relative',
                 top: `-${topPositionOfWordsWrapper}px`,
@@ -283,12 +289,7 @@ export default function Home() {
           </Card>
           <TypingResults>
             <h3>Your last results are:</h3>
-            <Flex
-              fontSize="20px"
-              flexDirection="column"
-              alignItems="center"
-              gap="10px"
-            >
+            <Flex fontSize="20px" flexDirection="column" alignItems="center">
               <Text fontSize="30px">
                 {lastTypingTestResults.wordsPerMinute} WPM
               </Text>

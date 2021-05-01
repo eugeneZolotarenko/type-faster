@@ -1,6 +1,6 @@
-import GlobalStyles from '../styles/ResetStyles';
+import GlobalStyles from '../style/ResetStyles';
 
-function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }: any) {
   return (
     <>
       <GlobalStyles />
