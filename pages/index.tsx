@@ -1,12 +1,17 @@
 import Head from 'next/head';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { transformTimeToReadable } from 'utils/transformTimeToReadoble';
 
-import MainContainer from 'style/components/MainContainerStyles';
-import TypingResults from 'style/components/TypingResultsStyles';
-import { Box, Card, Flex, Text } from 'rebass';
-import { Input } from '@rebass/forms';
+import {
+  Box,
+  Center,
+  Divider,
+  Flex,
+  Heading,
+  Input,
+  Text,
+} from '@chakra-ui/react';
 
 export default function Home() {
   const greenColor = '#88ff88';
@@ -29,7 +34,7 @@ export default function Home() {
   );
 
   const [topPositionOfWordsWrapper, setTopPositionOfWordsWrapper] = useState(0);
-  const [heightOfVisibleWordsContainer] = useState(100);
+  const [heightOfVisibleWordsContainer] = useState(110);
 
   const [typingTestTime] = useState(60);
   const [typingTestTimeLeft, setTypingTestTimeLeft] = useState(typingTestTime);
@@ -42,7 +47,7 @@ export default function Home() {
     initialTypingTestResult
   );
 
-  const wrapperOfWordsEl = useRef<HTMLElement>(null);
+  const wrapperOfWordsEl = useRef<any>(null);
   const inputForWordsEl = useRef<HTMLInputElement>(null);
 
   function runTimer() {
@@ -219,7 +224,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <MainContainer>
+      <Center pt="15vh">
         <Box width={'80%'} maxWidth="900px">
           <Flex>
             <Input
@@ -233,32 +238,26 @@ export default function Home() {
               className="count-down-timer"
               px={2}
               ml={2}
-              fontSize="22px"
+              fontSize="2xl"
             >
               {transformTimeToReadable(typingTestTimeLeft)}
             </Flex>
           </Flex>
-          <Card
-            sx={{
-              p: 1,
-              borderRadius: 2,
-              boxShadow: '0 0 16px rgba(0, 0, 0, .2)',
-              backgroundColor: '#f3f5f7',
-            }}
+          <Box
+            p={1}
             my={3}
-            css={{
-              height: `${heightOfVisibleWordsContainer}px`,
-              overflow: 'hidden',
-              position: 'relative',
-            }}
+            borderRadius={2}
+            boxShadow={'0 0 16px rgba(0, 0, 0, .2)'}
+            backgroundColor={'#f3f5f7'}
+            height={`${heightOfVisibleWordsContainer}px`}
+            overflow="hidden"
+            position="relative"
           >
             <Flex
               ref={wrapperOfWordsEl}
               flexWrap="wrap"
-              css={{
-                position: 'relative',
-                top: `-${topPositionOfWordsWrapper}px`,
-              }}
+              position="relative"
+              top={`-${topPositionOfWordsWrapper}px`}
             >
               {randomWords.map((word, i) => {
                 return (
@@ -267,10 +266,10 @@ export default function Home() {
                     ml={1}
                     my={2}
                     px={1}
-                    width={'fit-content'}
-                    fontSize="22px"
+                    width="fit-content"
+                    fontSize="2xl"
                     fontWeight="500"
-                    css={{ borderRadius: '5px' }}
+                    borderRadius="5px"
                     className="word"
                     color={
                       i === curWordIndex
@@ -286,24 +285,29 @@ export default function Home() {
                 );
               })}
             </Flex>
-          </Card>
-          <TypingResults>
-            <h3>Your last results are:</h3>
-            <Flex fontSize="20px" flexDirection="column" alignItems="center">
-              <Text fontSize="30px">
-                {lastTypingTestResults.wordsPerMinute} WPM
-              </Text>
-              <Text>
-                Keystrokes: <span>correct: 192</span> | <span>wrong: 5</span> |{' '}
-                <span>summary: 197</span>
-              </Text>
-              <Text>Accuracy: 96%</Text>
-              <Text>Correct words: {lastTypingTestResults.correctWords}</Text>
-              <Text>Wrong words: {lastTypingTestResults.wrongWords}</Text>
-            </Flex>
-          </TypingResults>
+          </Box>
+          <Center fontSize="xl" flexDirection="column" mt="70px">
+            <Heading fontSize="3xl" mb="10px">
+              Your last results are:
+            </Heading>
+            <Text fontSize="3xl">
+              {lastTypingTestResults.wordsPerMinute} WPM
+            </Text>
+            <Divider />
+            <Text>
+              Keystrokes: <span>correct: 192</span> | <span>wrong: 5</span> |{' '}
+              <span>summary: 197</span>
+            </Text>
+            <Divider />
+            <Text>Accuracy: 96%</Text>
+            <Divider />
+            <Text>Correct words: {lastTypingTestResults.correctWords}</Text>
+            <Divider />
+            <Text>Wrong words: {lastTypingTestResults.wrongWords}</Text>
+            <Divider />
+          </Center>
         </Box>
-      </MainContainer>
+      </Center>
     </>
   );
 }
