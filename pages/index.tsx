@@ -20,6 +20,8 @@ export default function Home() {
   const initialTypingTestResult = {
     isLastTestExist: false,
     charTyped: 0,
+    correctChars: 0,
+    wrongChars: 0,
     wordsPerMinute: 0,
     accuracy: 0,
     correctWords: 0,
@@ -168,24 +170,31 @@ export default function Home() {
       if (isCurWordLastInTheRow()) {
         setTopPositionOfWordsWrapper(recountTopPositionOfWordsWrapper());
       }
+      const charTyped = curTypingTestResults.charTyped + typedTextArr.length;
 
       if (isCorrectAmountOfCharsWithSpace() && isTypedTextCorrectWithSpace()) {
         const correctWords = curTypingTestResults.correctWords + 1;
-        const charTyped = curTypingTestResults.charTyped + typedTextArr.length;
-        const wordsPerMinute = charTyped / 5 / (typingTestTime / 60);
+        const correctChars =
+          curTypingTestResults.correctChars + typedTextArr.length;
+        const wordsPerMinute = correctChars / 5 / (typingTestTime / 60);
+        const accuracy = Math.round((correctChars / charTyped) * 100);
 
         setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, 'green']);
         setCurTypingTestResults({
           ...curTypingTestResults,
           correctWords,
           charTyped,
+          accuracy,
           wordsPerMinute,
+          correctChars,
         });
       } else {
         setColorsOfPrevWordsArr([...colorsOfPrevWordsArr, 'red']);
         setCurTypingTestResults({
           ...curTypingTestResults,
+          charTyped,
           wrongWords: curTypingTestResults.wrongWords + 1,
+          wrongChars: curTypingTestResults.wrongChars + typedTextArr.length,
         });
       }
 
@@ -295,11 +304,13 @@ export default function Home() {
             </Text>
             <Divider />
             <Text>
-              Keystrokes: <span>correct: 192</span> | <span>wrong: 5</span> |{' '}
-              <span>summary: 197</span>
+              Keystrokes:{' '}
+              <span>correct: {lastTypingTestResults.correctChars}</span> |{' '}
+              <span>wrong: {lastTypingTestResults.wrongChars}</span> |{' '}
+              <span>summary: {lastTypingTestResults.charTyped}</span>
             </Text>
             <Divider />
-            <Text>Accuracy: 96%</Text>
+            <Text>Accuracy: {lastTypingTestResults.accuracy}%</Text>
             <Divider />
             <Text>Correct words: {lastTypingTestResults.correctWords}</Text>
             <Divider />
