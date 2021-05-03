@@ -1,12 +1,17 @@
 import Head from 'next/head';
-import { useState, useEffect, useRef } from 'react';
-
-import MainContainer from 'styles/components/MainContainerStyles';
-import TypingResults from 'styles/components/TypingResultsStyles';
-import { Box, Card, Flex, Text } from 'rebass';
-import { Input } from '@rebass/forms';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { transformTimeToReadable } from 'utils/transformTimeToReadoble';
+
+import {
+  Box,
+  Center,
+  Divider,
+  Flex,
+  Heading,
+  Input,
+  Text,
+} from '@chakra-ui/react';
 
 export default function Home() {
   const greenColor = '#88ff88';
@@ -20,14 +25,16 @@ export default function Home() {
     correctWords: 0,
     wrongWords: 0,
   };
-  const [randomWords, setRandomWords] = useState([]);
+  const [randomWords, setRandomWords] = useState<string[]>([]);
   const [curWordIndex, setCurWordIndex] = useState(0);
 
   const [curWordBgColor, setCurWordBgColor] = useState(greenColor);
-  const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState([]);
+  const [colorsOfPrevWordsArr, setColorsOfPrevWordsArr] = useState<string[]>(
+    []
+  );
 
   const [topPositionOfWordsWrapper, setTopPositionOfWordsWrapper] = useState(0);
-  const [heightOfVisibleWordsContainer] = useState(100);
+  const [heightOfVisibleWordsContainer] = useState(110);
 
   const [typingTestTime] = useState(60);
   const [typingTestTimeLeft, setTypingTestTimeLeft] = useState(typingTestTime);
@@ -40,8 +47,8 @@ export default function Home() {
     initialTypingTestResult
   );
 
-  const wrapperOfWordsEl = useRef(null);
-  const inputForWordsEl = useRef(null);
+  const wrapperOfWordsEl = useRef<any>(null);
+  const inputForWordsEl = useRef<HTMLInputElement>(null);
 
   function runTimer() {
     let time = typingTestTimeLeft;
@@ -87,7 +94,7 @@ export default function Home() {
     return arrayOfWordsFromText;
   }
 
-  async function getRandomWordsArray(length) {
+  async function getRandomWordsArray(length: number) {
     const fullArray = await textFileToArray();
     const randomWordsArray = [];
 
@@ -100,46 +107,52 @@ export default function Home() {
     setRandomWords(filterArrayFromEmptyStrings(randomWordsArray));
   }
 
-  function filterArrayFromEmptyStrings(arr) {
+  function filterArrayFromEmptyStrings(arr: string[]) {
     return arr.filter((item) => item !== ' ');
   }
 
   function activateTypingTestInput() {
-    inputForWordsEl.current.focus();
+    inputForWordsEl.current?.focus();
   }
 
   function deactivateTypingTestInput() {
-    inputForWordsEl.current.blur();
+    inputForWordsEl.current?.blur();
   }
 
   function emptyInput() {
-    inputForWordsEl.current.value = '';
+    inputForWordsEl.current!.value = '';
   }
 
   const getPositionOfNextWordEl = () => {
-    const allWordsEls = wrapperOfWordsEl.current.querySelectorAll('.word');
-    const nextWordEl = allWordsEls[curWordIndex + 1];
-    const posOfNextWordEl = nextWordEl.offsetLeft;
-    return posOfNextWordEl;
+    const allWordsEls:
+      | NodeListOf<HTMLElement>
+      | undefined = wrapperOfWordsEl.current?.querySelectorAll('.word');
+    if (allWordsEls) {
+      const nextWordEl = allWordsEls[curWordIndex + 1];
+      const posOfNextWordEl = nextWordEl.offsetLeft;
+      return posOfNextWordEl;
+    }
   };
 
-  function listenTypingTest(e) {
-    const typedTextArr = e.target.value.split('');
+  function listenTypingTest(e: React.FormEvent<HTMLInputElement>) {
+    const typedTextArr = e.currentTarget.value.split('');
     const currentWordArr = randomWords[curWordIndex].split('');
+    const positionOfNextWordEl = getPositionOfNextWordEl();
 
-    const isCurWordLastInTheRow = () => getPositionOfNextWordEl() <= 30;
+    const isCurWordLastInTheRow = () =>
+      positionOfNextWordEl && positionOfNextWordEl <= 30;
     const isItStartOfTypingTest = () =>
       curWordIndex === 0 && typedTextArr.length === 1;
     const lastTypedCharIsSpace = () =>
       typedTextArr[typedTextArr.length - 1] === ' ';
-    const isTypedTextCorrect = (typedText) =>
+    const isTypedTextCorrect = (typedText: string[]) =>
       typedText.every((value, index) => value === currentWordArr[index]);
     const isTypedTextCorrectWithSpace = () =>
       isTypedTextCorrect([...typedTextArr].slice(0, -1));
     const isCorrectAmountOfCharsWithSpace = () =>
       typedTextArr.length === currentWordArr.length + 1;
     const isTypedLettersGreaterThan1 = () => typedTextArr.length > 1;
-    const isTypedTextArrEmpty = (typedText) => typedText.length === 0;
+    const isTypedTextArrEmpty = (typedText: string[]) => typedText.length === 0;
 
     const recountTopPositionOfWordsWrapper = () =>
       topPositionOfWordsWrapper + heightOfVisibleWordsContainer / 2;
@@ -151,7 +164,7 @@ export default function Home() {
 
     if (lastTypedCharIsSpace() && isTypedLettersGreaterThan1()) {
       setCurWordIndex(curWordIndex + 1);
-      e.target.value = '';
+      e.currentTarget.value = '';
       if (isCurWordLastInTheRow()) {
         setTopPositionOfWordsWrapper(recountTopPositionOfWordsWrapper());
       }
@@ -178,7 +191,7 @@ export default function Home() {
 
       emtyTypedTextArr();
     } else if (lastTypedCharIsSpace() && !isTypedLettersGreaterThan1()) {
-      e.target.value = '';
+      e.currentTarget.value = '';
     }
 
     if (isTypedTextCorrect(typedTextArr) || isTypedTextArrEmpty(typedTextArr)) {
@@ -211,12 +224,11 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <MainContainer>
+      <Center pt="15vh">
         <Box width={'80%'} maxWidth="900px">
           <Flex>
             <Input
               ref={inputForWordsEl}
-              autocomplete="off"
               onChange={listenTypingTest}
               type="text"
             />
@@ -226,33 +238,26 @@ export default function Home() {
               className="count-down-timer"
               px={2}
               ml={2}
-              fontSize="22px"
+              fontSize="2xl"
             >
               {transformTimeToReadable(typingTestTimeLeft)}
             </Flex>
           </Flex>
-          <Card
-            sx={{
-              p: 1,
-              borderRadius: 2,
-              boxShadow: '0 0 16px rgba(0, 0, 0, .2)',
-              backgroundColor: '#f3f5f7',
-            }}
+          <Box
+            p={1}
             my={3}
-            css={{
-              height: `${heightOfVisibleWordsContainer}px`,
-              overflow: 'hidden',
-              position: 'relative',
-            }}
+            borderRadius={2}
+            boxShadow={'0 0 16px rgba(0, 0, 0, .2)'}
+            backgroundColor={'#f3f5f7'}
+            height={`${heightOfVisibleWordsContainer}px`}
+            overflow="hidden"
+            position="relative"
           >
             <Flex
               ref={wrapperOfWordsEl}
               flexWrap="wrap"
-              space={5}
-              css={{
-                position: 'relative',
-                top: `-${topPositionOfWordsWrapper}px`,
-              }}
+              position="relative"
+              top={`-${topPositionOfWordsWrapper}px`}
             >
               {randomWords.map((word, i) => {
                 return (
@@ -261,10 +266,10 @@ export default function Home() {
                     ml={1}
                     my={2}
                     px={1}
-                    width={'fit-content'}
-                    fontSize="22px"
+                    width="fit-content"
+                    fontSize="2xl"
                     fontWeight="500"
-                    css={{ borderRadius: '5px' }}
+                    borderRadius="5px"
                     className="word"
                     color={
                       i === curWordIndex
@@ -280,29 +285,29 @@ export default function Home() {
                 );
               })}
             </Flex>
-          </Card>
-          <TypingResults>
-            <h3>Your last results are:</h3>
-            <Flex
-              fontSize="20px"
-              flexDirection="column"
-              alignItems="center"
-              gap="10px"
-            >
-              <Text fontSize="30px">
-                {lastTypingTestResults.wordsPerMinute} WPM
-              </Text>
-              <Text>
-                Keystrokes: <span>correct: 192</span> | <span>wrong: 5</span> |{' '}
-                <span>summary: 197</span>
-              </Text>
-              <Text>Accuracy: 96%</Text>
-              <Text>Correct words: {lastTypingTestResults.correctWords}</Text>
-              <Text>Wrong words: {lastTypingTestResults.wrongWords}</Text>
-            </Flex>
-          </TypingResults>
+          </Box>
+          <Center fontSize="xl" flexDirection="column" mt="70px">
+            <Heading fontSize="3xl" mb="10px">
+              Your last results are:
+            </Heading>
+            <Text fontSize="3xl">
+              {lastTypingTestResults.wordsPerMinute} WPM
+            </Text>
+            <Divider />
+            <Text>
+              Keystrokes: <span>correct: 192</span> | <span>wrong: 5</span> |{' '}
+              <span>summary: 197</span>
+            </Text>
+            <Divider />
+            <Text>Accuracy: 96%</Text>
+            <Divider />
+            <Text>Correct words: {lastTypingTestResults.correctWords}</Text>
+            <Divider />
+            <Text>Wrong words: {lastTypingTestResults.wrongWords}</Text>
+            <Divider />
+          </Center>
         </Box>
-      </MainContainer>
+      </Center>
     </>
   );
 }

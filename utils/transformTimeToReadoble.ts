@@ -1,4 +1,4 @@
-export function transformTimeToReadable(time) {
+export function transformTimeToReadable(time: number) {
   let timeLeft = time === 60 ? '1:00' : `0:${time}`;
 
   const lengthOfTime = time.toString().split('').length;
